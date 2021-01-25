@@ -13,6 +13,7 @@ def crawl(URLString, CrawlDepth):
         for link in BeautifulSoup(response.content,'html.parser', parse_only=SoupStrainer('a')):
             if link.has_attr('href'):
                 crawl(link['href'], CrawlDepth - 1)
+                
 URLObj = URLHandler()
 URLList = URLObj.getURLList()
 
