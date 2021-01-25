@@ -3,6 +3,7 @@ from URLObjects import URLBuilder, URL
 from WebsiteObjects import Website
 from bs4 import BeautifulSoup, SoupStrainer
 from urllib.parse import urljoin
+from sendEmail import gmailSender
 
 #Global Variables (Yikes!!)
 #TODO: save the HTML into the database, if we keep in memory we may run out
@@ -33,10 +34,11 @@ def sendReport(website):
     emailList = website.getEmails()
     #TODO: make this message user changable
     message = "Attention: The following website has changed: " + str(website.getURL())
+    sender = gmailSender()
     for email in emailList:
-        #TODO: Send Email
-        print("Pretend I emailed: " + email)
-    
+        sender.sendFullEmail("me", email, "Test2", message)
+        print("Email Sent to: " + email)
+
 
 #Program Mainline
 URLObj = URLBuilder()
@@ -49,6 +51,3 @@ for websiteData in HTMLDictList:
     website = Website(websiteData["URL"])
     if(website.hasChanged(websiteData["HTML"])):
         sendReport(website)
-
-
-    
