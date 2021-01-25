@@ -5,9 +5,9 @@ Team 3 Python
 The Following Libs are required to run this program:<br>
 <i>Note: Some are often distributed with Python itself</i><br>
 Requests<br>
-``` pip install requests``` <br>
+``` pip3 install requests``` <br>
 BeautifulSoup<br>
-``` pip install beautifulsoup``` <br>
+``` pip3 install beautifulsoup``` <br>
 Google Gmail API<br>
 ```pip3 install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib oauth2client ```<br>
 <br>
