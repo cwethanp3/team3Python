@@ -1,10 +1,20 @@
 import requests
-from bs4 import BeautifulSoup
+from URLHandler import URLHandler
+from URL import URL
+from bs4 import BeautifulSoup, SoupStrainer
 
-URL = 'https://www.monster.com/jobs/search/?q=Software-Developer&where=Australia'
-page = requests.get(URL)
+def crawl(URLString, CrawlDepth):
+    #TODO: Handle Errors
+    response = requests.get(URLString)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    #TODO: actually save HTML
+    print("Pretend I'm saving.. " + soup.prettify()[1:100])
+    if (CrawlDepth != 1):
+        for link in BeautifulSoup(response.content,'html.parser', parse_only=SoupStrainer('a')):
+            if link.has_attr('href'):
+                crawl(link['href'], CrawlDepth - 1)
+URLObj = URLHandler()
+URLList = URLObj.getURLList()
 
-soup = BeautifulSoup(page.content, 'html.parser')
-#results = soup.find(id='ResultsContainer')
-title_elem = soup.find('body')
-print(title_elem.prettify())
+for URLItem in URLList:
+    crawl(URLItem.getURL(), URLItem.getCrawlDepth())
