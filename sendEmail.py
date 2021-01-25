@@ -2,6 +2,7 @@ from apiclient.discovery import build
 from apiclient import errors
 from httplib2 import Http
 from oauth2client import file, client, tools
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from google_auth_oauthlib.flow import InstalledAppFlow
 from base64 import urlsafe_b64encode
@@ -60,7 +61,7 @@ class gmailSender:
       Returns:
         An object containing a base64url encoded email object.
       """
-      message = MIMEText(message_text)
+      message = MIMEText(message_text, 'html')
       message['to'] = to
       message['from'] = sender
       message['subject'] = subject
