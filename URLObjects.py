@@ -1,4 +1,3 @@
-from URL import URL
 class URLBuilder:
     def __init__(self):
         self.URLs = [URL("https://www.ldplanroom.com/jobs/public?status=bidding ", 1),
