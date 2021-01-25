@@ -2,6 +2,6 @@
 Team 3 Python
 
 
-The Following Libs are required to run this program:
-requests
+The Following Libs are required to run this program:<br>
+requests<br>
 BeautifulSoup
