@@ -18,4 +18,4 @@ URLObj = URLHandler()
 URLList = URLObj.getURLList()
 
 for URLItem in URLList:
-    crawl(URLItem.getURL(), URLItem.getCrawlDepth())
+    crawl(URLItem.getURL(), URLItem.getCrawlDepth()
