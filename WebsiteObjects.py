@@ -16,6 +16,3 @@ class Website:
     def getEmails(self):
         #TODO: get email list from Database
         return ["mypaiswell@gmail.com", "Fake@epawelski.com"]
-
-    
-

@@ -3,6 +3,8 @@ from URLObjects import URLBuilder, URL
 from WebsiteObjects import Website
 from bs4 import BeautifulSoup, SoupStrainer
 from urllib.parse import urljoin
+from sendEmail import gmailSender
+
 
 #Global Variables (Yikes!!)
 #TODO: save the HTML into the database, if we keep in memory we may run out
@@ -29,18 +31,21 @@ def crawl(URLString, CrawlDepth):
     else:
        print("Bad URL: " + URLString)
 
-def sendReport(website):
+def sendReport(website, sender):
     emailList = website.getEmails()
     #TODO: make this message user changable
-    message = "Attention: The following website has changed: " + str(website.getURL())
+    message = "<b>Attention:</b> The following website has changed: " + str(website.getURL())
+    subject = "Changes to " + str(website.getURL())
+
     for email in emailList:
-        #TODO: Send Email
-        print("Pretend I emailed: " + email)
-    
+        sender.sendFullEmail("me", email, subject, message)
+        print("Email Sent to: " + email)
+
 
 #Program Mainline
 URLObj = URLBuilder()
 URLList = URLObj.getURLList()
+sender = gmailSender()
 
 for URLItem in URLList:
     crawl(URLItem.getURL(), URLItem.getCrawlDepth())
@@ -48,7 +53,4 @@ for URLItem in URLList:
 for websiteData in HTMLDictList:
     website = Website(websiteData["URL"])
     if(website.hasChanged(websiteData["HTML"])):
-        sendReport(website)
-
-
-    
+        sendReport(website, sender)
