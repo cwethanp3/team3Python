@@ -11,46 +11,50 @@ from sendEmail import gmailSender
 HTMLDictList = []
 HTMLList = []
 
-def crawl(URLString, CrawlDepth):
+def crawl(URLString, CrawlDepth, WebsiteID):
     #TODO: Handle PDF's
     if(URLString[0:4].upper() == 'HTTP'):
         if(URLString not in HTMLList):
             try:
                 response = requests.get(URLString)
                 soup = BeautifulSoup(response.content, 'html.parser')
-                HTMLList.append(URLString)
-                HTMLDictList.append(dict({"URL":URLString, "HTML": soup.prettify()}))
+                HTMLList.append(URLString)              
+                HTMLDictList.append(dict({"URL":URLString, "HTML": soup.prettify(), "WebsiteID": WebsiteID}))
                 print("Saved: " + URLString)
                 if (CrawlDepth > 1):
                     for link in BeautifulSoup(response.content,'html.parser', parse_only=SoupStrainer('a')):
                         if link.has_attr('href'):
-                            crawl(urljoin(URLString,link['href']), CrawlDepth - 1)
+                            crawl(urljoin(URLString,link['href']), CrawlDepth - 1, WebsiteID)
             #TODO: Allow Keyboard Escape
-            except:
-                print("Unexpected Error on URL: " + URLString)
+            except Exception as e:
+                print("Unexpected Error on URL: " + URLString + str(e))
     else:
        print("Bad URL: " + URLString)
 
 def sendReport(website, sender):
     emailList = website.getEmails()
     #TODO: make this message user changable
-    message = "<b>Attention:</b> The following website has changed: " + str(website.getURL())
+    message = "<b>Attention:</b> The following website has changed: %s <br><br>Changes:<hr>%s" %(str(website.getURL()), website.getChangedText())
     subject = "Changes to " + str(website.getURL())
 
     for email in emailList:
+        #Commented out for testing
         sender.sendFullEmail("me", email, subject, message)
         print("Email Sent to: " + email)
 
 
 #Program Mainline
+
 URLObj = URLBuilder()
 URLList = URLObj.getURLList()
 sender = gmailSender()
 
+
 for URLItem in URLList:
-    crawl(URLItem.getURL(), URLItem.getCrawlDepth())
+    crawl(URLItem.getURL(), URLItem.getCrawlDepth(), URLItem.getWebsite_ID())
     #Crawl builds HTMLDictList
+print("Checking...")
 for websiteData in HTMLDictList:
-    website = Website(websiteData["URL"])
-    if(website.hasChanged(websiteData["HTML"])):
+    website = Website(websiteData["URL"], websiteData["HTML"], websiteData["WebsiteID"])
+    if(website.hasChanged()):
         sendReport(website, sender)
