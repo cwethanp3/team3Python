@@ -189,7 +189,7 @@ class Website:
 
     def getEmails(self):
         emails = []
-        query = "SELECT Email_Address FROM `EMAILS` join EMAIL_GROUPS on EMAILS.Email_Group_ID = EMAIL_GROUPS.Email_Group_ID join WEBSITES on EMAIL_GROUPS.Email_Group_ID=WEBSITES.Email_Group_ID where WEBSITES.Website_ID = \'%s\'" %(self.WebsiteID)
+        query = "SELECT Email_Address FROM `EMAILS` join EMAIL_GROUPS on EMAILS.Email_ID = EMAIL_GROUPS.Email_ID join WEBSITES on EMAIL_GROUPS.Website_Group_ID=WEBSITES.Website_Group_ID where WEBSITES.Website_ID = \'%s\'" %(self.WebsiteID)
         self.cursor.execute(query)
         for Email_Address in self.cursor:
           emails.append(Email_Address[0])
@@ -221,3 +221,4 @@ class Website:
         finally:
             cursor.close()
             conn.close()
+        
