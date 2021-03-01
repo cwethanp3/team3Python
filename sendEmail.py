@@ -1,18 +1,22 @@
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 from apiclient import errors
 from httplib2 import Http
 from oauth2client import file, client, tools
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from base64 import urlsafe_b64encode
+import sys
 import os.path
 import pickle
+
+
 
 class gmailSender:
     def __init__(self):
 
-        SCOPE = 'https://www.googleapis.com/auth/gmail.compose' # Allows sending only, not reading
+        SCOPE = ['https://www.googleapis.com/auth/gmail.compose'] # Allows sending only, not reading
 
         # Initialize the object for the Gmail API
         """# https://developers.google.com/gmail/api/quickstart/python
@@ -38,10 +42,13 @@ class gmailSender:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                #flow = client.flow_from_clientsecrets('client_secret.json', SCOPE)
-                flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPE)
-                print(SCOPE)
+                if getattr(sys, 'frozen', False):
+                   flow = InstalledAppFlow.from_client_secrets_file( os.path.join(sys._MEIPASS, "files/credentials.json"), SCOPE)
+                else:
+                    #flow = client.flow_from_clientsecrets('client_secret.json', SCOPE)
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                    'files/credentials.json', SCOPE)
+                #print(SCOPE)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
             with open('token.pickle', 'wb') as token:
@@ -83,7 +90,7 @@ class gmailSender:
       try:
         message = (service.users().messages().send(userId=user_id, body=message)
                    .execute())
-        print('Message Id: %s' % message['id'])
+        #print('Message Id: %s' % message['id'])
         return message
       #except errors.HttpError, error:
       except Exception as e:
