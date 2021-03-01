@@ -1,4 +1,4 @@
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 from apiclient import errors
 from httplib2 import Http
 from oauth2client import file, client, tools
@@ -7,8 +7,11 @@ from email.mime.text import MIMEText
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from base64 import urlsafe_b64encode
+import sys
 import os.path
 import pickle
+
+
 
 class gmailSender:
     def __init__(self):
@@ -39,9 +42,12 @@ class gmailSender:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                #flow = client.flow_from_clientsecrets('client_secret.json', SCOPE)
-                flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPE)
+                if getattr(sys, 'frozen', False):
+                   flow = InstalledAppFlow.from_client_secrets_file( os.path.join(sys._MEIPASS, "files/credentials.json"), SCOPE)
+                else:
+                    #flow = client.flow_from_clientsecrets('client_secret.json', SCOPE)
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                    'files/credentials.json', SCOPE)
                 #print(SCOPE)
                 creds = flow.run_local_server(port=0)
             # Save the credentials for the next run
