@@ -13,8 +13,12 @@ Google Gmail API<br>
 Fuzzy Wuzzy<br>
 ```pip3 install fuzzywuzzy```<br>
 
-Mql<br>
+Sql<br>
 ```Pip3 install mysqlclient```<br>
+<br>
+Selenium<br>
+```pip install selenium```<br>
+see additional steps here: https://www.geeksforgeeks.org/selenium-python-introduction-and-installation/<br>
 <br>
 <hr>
 <br>

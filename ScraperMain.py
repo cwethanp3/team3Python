@@ -34,13 +34,14 @@ def crawl(URLString, CrawlDepth, WebsiteID):
 def sendReport(website, sender):
     emailList = website.getEmails()
     #TODO: make this message user changable
-    message = "<b>Attention:</b> The following website has changed: %s <br><br>Changes:<hr>%s" %(str(website.getURL()), website.getChangedText())
+    message = website.getMessage()
     subject = "Changes to " + str(website.getURL())
 
     for email in emailList:
         #Commented out for testing
-        sender.sendFullEmail("me", email, subject, message)
+        sender.sendFullEmail("me", email, subject, message, website.images)
         print("Email Sent to: " + email)
+    website.removeImages()
 
 
 #Program Mainline

@@ -4,6 +4,7 @@ from httplib2 import Http
 from oauth2client import file, client, tools
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from base64 import urlsafe_b64encode
@@ -58,7 +59,7 @@ class gmailSender:
 
 
     # https://developers.google.com/gmail/api/guides/sending
-    def create_message(self,sender, to, subject, message_text):
+    def create_message(self,sender, to, subject, message_text, ATTACHED_IMAGES):
       """Create a message for an email.
       Args:
         sender: Email address of the sender.
@@ -68,16 +69,33 @@ class gmailSender:
       Returns:
         An object containing a base64url encoded email object.
       """
-      message = MIMEText(message_text, 'html')
+      message = MIMEMultipart('related')
       message['to'] = to
       message['from'] = sender
       message['subject'] = subject
+
+      msgAlternative = MIMEMultipart('alternative')
+      message.attach(msgAlternative)
+
+      msgHtml = MIMEText(message_text, 'html')
+      msgAlternative.attach(msgHtml)
+      
+      for i, image in enumerate(ATTACHED_IMAGES):
+          fp = open(image, 'rb')
+          msgImage = MIMEImage(fp.read())
+          fp.close()
+
+          msgImage.add_header('Content-ID', '<image' + str(i) +'>')
+          message.attach(msgImage)
+      
+      
+      
       encoded_message = urlsafe_b64encode(message.as_bytes())
       return {'raw': encoded_message.decode()}
 
 
     # https://developers.google.com/gmail/api/guides/sending
-    def send_message(self, service, user_id, message):
+    def send_message(self, service, user_id, message ):
       """Send an email message.
       Args:
         service: Authorized Gmail API service instance.
@@ -96,6 +114,6 @@ class gmailSender:
       except Exception as e:
         print('An error occurred: '+ str(e))
 
-    def sendFullEmail(self, SENDER, RECIPIENT, SUBJECT, CONTENT):
-        raw_msg = self.create_message(SENDER, RECIPIENT, SUBJECT, CONTENT)
+    def sendFullEmail(self, SENDER, RECIPIENT, SUBJECT, CONTENT, ATTACHED_IMAGES):
+        raw_msg = self.create_message(SENDER, RECIPIENT, SUBJECT, CONTENT, ATTACHED_IMAGES)
         self.send_message(self.service, "me", raw_msg)
