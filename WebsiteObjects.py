@@ -44,25 +44,28 @@ class Website:
 
     def getURL(self):
         return self.URL
+
+    def getFreshCursor(self):
+        self.cnx = mysql.connector.connect(user='u498554350_admin', password='^J4wcHr@A',
+                      host='141.136.43.1',
+                      database='u498554350_TEAM3')
+        self.cursor = self.cnx.cursor()
+        
     
     def syncHTML(self):
-        self.cnx = mysql.connector.connect(user='u498554350_admin', password='^J4wcHr@A',
-                              host='141.136.43.1',
-                              database='u498554350_TEAM3')
-        self.cursor = self.cnx.cursor()
-
-            
+        self.getFreshCursor()
+        
         #Save Blob to DB
         query = "SELECT MAX(Blob_ID) FROM BLOBS"
         self.cursor.execute(query)
-        BlobID = 1
+        self.BlobID = 1
         for Blob_ID in self.cursor:
-          BlobID = (Blob_ID[0] + 1)
+          self.BlobID = (Blob_ID[0] + 1)
         try:
             with io.StringIO() as f:
                 f = StringIO(self.HTML)
                 query = "INSERT INTO BLOBS (Blob_ID, Blob_Data) VALUES (%s, %s)" 
-                args = (BlobID, f.read())
+                args = (self.BlobID, f.read())
                 self.cursor.execute(query, args)
                 self.cnx.commit()
         except Exception as e:
@@ -72,7 +75,7 @@ class Website:
         #Save URLHistory to DB
         if len(self.ChangedText ) > 255:
             self.ChangedText = self.ChangedText[0:255]
-        query = "INSERT INTO URL_HISTORY(URL, Changed_Text, Website_ID, Blob_ID) VALUES (\'%s\',\'%s\',%s,%s)" %(self.URL, self.ChangedText, self.WebsiteID, BlobID)
+        query = "INSERT INTO URL_HISTORY(URL, Changed_Text, Website_ID, Blob_ID) VALUES (\'%s\',\'%s\',%s,%s)" %(self.URL, self.ChangedText, self.WebsiteID, self.BlobID)
         try:
             self.cursor.execute(query)
             self.cnx.commit()
@@ -81,6 +84,7 @@ class Website:
             print(str(e))
 
         #Update Last Crawl Time
+        self.getFreshCursor()
         query = "UPDATE WEBSITES SET Last_Crawl_DateTime = CURRENT_TIMESTAMP() WHERE WEBSITES.Website_ID = \'%s\'" %(self.WebsiteID)
         try:
             self.cursor.execute(query)
@@ -90,6 +94,7 @@ class Website:
             print(str(e))
 
         #Get Last HTML Scan From Database
+        self.getFreshCursor()
         query = "SELECT Blob_Data FROM `URL_HISTORY` join BLOBS on BLOBS.Blob_ID=URL_HISTORY.Blob_ID where URL = \'%s\' order by DateTime_Created desc LIMIT 1" %(self.URL)
         self.cursor.execute(query)
         self.HTML = "None"
@@ -102,6 +107,15 @@ class Website:
                 #self.HTML = str(f.read())
                 #self.HTML = self.HTML.replace('\\n','\n')
         except Exception as e:
+            print(str(e))
+
+        self.getFreshCursor()
+        query = "update WEBSITES_URLS SET Versions = Versions + 1 WHERE URL = \'%s\'" %(self.URL)
+        try:
+            self.cursor.execute(query)
+            self.cnx.commit()
+        except Exception as e:
+            print(query)
             print(str(e))
             
     def getChangedText(self):
@@ -128,6 +142,7 @@ class Website:
         
 
         #Check to see what, if any Filter Type Exists
+        
         query = "SELECT Key_Term, Value FROM WEBSITES join FILTERS on WEBSITES.Filter_Group_ID = FILTERS.Filter_Group_ID where WEBSITES.Website_ID = \'%s\'" %(self.WebsiteID)
         self.cursor.execute(query)
         include = []
@@ -167,6 +182,7 @@ class Website:
                 if(type(y) is NavigableString and not str(y).isspace() ):
                     ListY.append(y)
 
+
         #Check for chnages and render elements in selenium
         self.ChangedText = ""
         browser = WebBrowser()
@@ -177,10 +193,10 @@ class Website:
             for i, change in enumerate(self.changes):
                 if change[0] == "Add":
                     if len(self.images) < 10:
-                        self.ChangedText = self.ChangedText + change[1]
+                        self.ChangedText = self.ChangedText + change[1].strip() + " "
                         print("Found Change" + change[1])
                         #todo: add chek to see if these parents exist
-                        print(self.findCssSelector(change[1].parent.parent.parent))
+                        #print(self.findCssSelector(change[1].parent.parent.parent))
                         try:
                             idVar = int(time.time() * 1000) 
                             browser.getCSSScreenshotPNG(self.findCssSelector(change[1].parent.parent.parent), self.URL, (str(idVar) + "chg.png"))
@@ -194,7 +210,24 @@ class Website:
         
         
         if self.ChangedText != "":
-            print("Found Changes on %s" %(self.URL))
+            if len(self.ChangedText ) > 255:
+                self.ChangedText = self.ChangedText[0:255]
+            self.getFreshCursor()
+            query = "update URL_HISTORY SET Changed_Text = \'%s\' WHERE Website_ID = \'%s\' and Blob_ID = \'%s\'" %(self.ChangedText, self.WebsiteID, self.BlobID)
+            try:
+                self.cursor.execute(query)
+                self.cnx.commit()
+            except Exception as e:
+                print(query)
+                print(str(e))
+            query = "update WEBSITES_URLS SET Changes = Changes + 1 WHERE URL = \'%s\'" %(self.URL)
+            try:
+                self.cursor.execute(query)
+                self.cnx.commit()
+            except Exception as e:
+                print(query)
+                print(str(e))
+            print("Found Changes on %s" %(self.ChangedText))
     
 
         return self.ChangedText != ""
@@ -249,10 +282,7 @@ class Website:
         return outString
 
     def getEmails(self):
-        self.cnx = mysql.connector.connect(user='u498554350_admin', password='^J4wcHr@A',
-                              host='141.136.43.1',
-                              database='u498554350_TEAM3')
-        self.cursor = self.cnx.cursor()
+        self.getFreshCursor()
         emails = []
         query = "SELECT Email_Address FROM `EMAILS` join EMAIL_GROUPS on EMAILS.Email_ID = EMAIL_GROUPS.Email_ID join WEBSITES on EMAIL_GROUPS.Website_Group_ID=WEBSITES.Website_Group_ID where WEBSITES.Website_ID = \'%s\'" %(self.WebsiteID)
         self.cursor.execute(query)
